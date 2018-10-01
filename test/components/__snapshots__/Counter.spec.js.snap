@@ -56,6 +56,22 @@ exports[`Counter component should match exact snapshot 1`] = `
       <button
         className="btn"
         data-tclass="btn"
+        title="Now with more redux-saga"
+        type="button"
+      >
+        even
+      </button>
+      <button
+        className="btn"
+        data-tclass="btn"
+        title="A _debounced_ decrement, courtesy of redux-saga"
+        type="button"
+      >
+        Dec??
+      </button>
+      <button
+        className="btn"
+        data-tclass="btn"
         onClick={[Function]}
         type="button"
       >

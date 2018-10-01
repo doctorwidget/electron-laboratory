@@ -62,9 +62,9 @@ describe('Counter component', () => {
     expect(actions.incrementIfOdd.called).toBe(true);
   });
 
-  it('should fourth button should call incrementAsync', () => {
+  it('should sixth button should call incrementAsync', () => {
     const { buttons, actions } = setup();
-    buttons.at(3).simulate('click');
+    buttons.at(5).simulate('click');
     expect(actions.incrementAsync.called).toBe(true);
   });
 });

@@ -6,8 +6,10 @@ import routes from '../constants/routes.json';
 
 type Props = {
   increment: () => void,
+  incrementIfEven: () => void,
   incrementIfOdd: () => void,
   incrementAsync: () => void,
+  decrementRequest: () => void,
   decrement: () => void,
   counter: number
 };
@@ -18,8 +20,10 @@ export default class Counter extends Component<Props> {
   render() {
     const {
       increment,
+      incrementIfEven,
       incrementIfOdd,
       incrementAsync,
+      decrementRequest,
       decrement,
       counter
     } = this.props;
@@ -57,6 +61,24 @@ export default class Counter extends Component<Props> {
             type="button"
           >
             odd
+          </button>
+          <button
+            className={styles.btn}
+            onClick={incrementIfEven}
+            data-tclass="btn"
+            type="button"
+            title="Now with more redux-saga"
+          >
+            even
+          </button>
+          <button
+            className={styles.btn}
+            onClick={decrementRequest}
+            data-tclass="btn"
+            type="button"
+            title="A _debounced_ decrement, courtesy of redux-saga"
+          >
+            Dec??
           </button>
           <button
             className={styles.btn}
