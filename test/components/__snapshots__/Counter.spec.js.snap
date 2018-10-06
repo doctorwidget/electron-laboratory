@@ -64,18 +64,19 @@ exports[`Counter component should match exact snapshot 1`] = `
       <button
         className="btn"
         data-tclass="btn"
-        title="A _debounced_ decrement, courtesy of redux-saga"
+        title="A debounced and deferred decrement"
         type="button"
       >
-        Dec??
+        ...Dec
       </button>
       <button
         className="btn"
         data-tclass="btn"
         onClick={[Function]}
+        title="A debounced and deferred increment"
         type="button"
       >
-        async
+        ...Inc
       </button>
     </div>
   </div>

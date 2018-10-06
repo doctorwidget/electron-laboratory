@@ -9,7 +9,7 @@ type Props = {
   incrementIfEven: () => void,
   incrementIfOdd: () => void,
   incrementAsync: () => void,
-  decrementRequest: () => void,
+  decrementAsync: () => void,
   decrement: () => void,
   counter: number
 };
@@ -23,7 +23,7 @@ export default class Counter extends Component<Props> {
       incrementIfEven,
       incrementIfOdd,
       incrementAsync,
-      decrementRequest,
+      decrementAsync,
       decrement,
       counter
     } = this.props;
@@ -73,20 +73,21 @@ export default class Counter extends Component<Props> {
           </button>
           <button
             className={styles.btn}
-            onClick={decrementRequest}
+            onClick={decrementAsync}
             data-tclass="btn"
             type="button"
-            title="A _debounced_ decrement, courtesy of redux-saga"
+            title="A debounced and deferred decrement"
           >
-            Dec??
+            ...Dec
           </button>
           <button
             className={styles.btn}
-            onClick={() => incrementAsync()}
+            onClick={incrementAsync}
             data-tclass="btn"
             type="button"
+            title="A debounced and deferred increment"
           >
-            async
+            ...Inc
           </button>
         </div>
       </div>

@@ -1,5 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`actions incrementIfOdd should always create an incrementIfOdd action 1`] = `
+Object {
+  "type": "INCREMENT_IF_ODD",
+}
+`;
+
 exports[`actions should decrement should create decrement action 1`] = `
 Object {
   "type": "DECREMENT_COUNTER",

@@ -139,17 +139,20 @@ I got nagged to upgrade Yarn after only a couple of weeks
 - _done_ add incrementIfEven saga (action name, saga catcher, re-broadcast, component JSX)
 - _done_ add decrementRequest saga (action name, saga catcher, re-broadcast, component JSX)
 - _done_ interim commit
-- add incrementIfOdd as a saga and _remove_ the thunk version
-- add incrementRequest as a saga and _remove_ the thunk version
-- remove _all_ thunk references - let runtime errors tell you if you're missing any
-- remove any jest test code that relied on thunks (if any)
-- interim commit
-- test page for counter sagas
-- every saga must be jest-tested, even if only via a vanilla path
+- _done_ add incrementIfOdd as a saga and _remove_ the thunk version
+- _done_ add incrementAsync as a saga and _remove_ the thunk version
+- _done_ rename `decrementRequest` to `decrementAsync` and refactor all tests & etc
+- _done_ remove _all_ thunk references - let runtime errors tell you if you're missing any
+- _done_ remove any jest test code that relied on thunks (if any)
+- _done_ sanity tests with all redux-saga actions
+- _done_ interim commit
+- saga Jest tests! create `{project}/test/sagas/counter.spec.js`
+- test for all worker sagas... no need for watcher saga tests, right?
 - ifOdd and ifEven sagas get jest-tested with differing inputs!
 - figure out how to jest the debounce effects of decrementRequest and incrementRequest
 - interim commit
 - create a test page of your own that you can navigate to
+- put some font-awesome icon on this page somehow, because I want to confirm that's happening!
 - do a _cancelable_ saga action, and a unit test for it
   something that starts a timer, which counts down from 10, but which can be canceled
   So it ends either when the countdown ends, or the user clicks abort

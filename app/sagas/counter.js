@@ -102,7 +102,9 @@ export const doIncrementIfEven = function* doDecrementIfEven() {
     );
     yield put(counterActions.increment()); // nb: we put an instantiated action object, not an action creator function
   } else {
-    console.log('doIncrementIfEven WORKER counter is not even. Doing nothing!');
+    console.log(
+      'doIncrementIfEven WORKER saga: counter is not even. Doing nothing!'
+    );
   }
 };
 
@@ -111,8 +113,8 @@ export const watchIncrementIfEven = function* watchIncrementIfEven() {
 };
 
 /*
- * Similarly, implement a decrementRequest saga, triggered by a new action type
- * named DECREMENT_REQUEST. Again, a saga in this file will hear that
+ * Similarly, implement a decrementAsync saga, triggered by a new action type
+ * named DECREMENT_ASYNC. Again, a saga in this file will hear that
  * request, cause the delay, and then emit the same decrement() action that
  * already exists, via `put(decrement())`. Again, business logic moves from
  * the action creators file to the sagas file.
@@ -126,11 +128,11 @@ export const watchIncrementIfEven = function* watchIncrementIfEven() {
  * reducer somewhere. Keep the reducers focused on their own pure state logic,
  * and let messy real-world concerns live as side effects in sagas.
  */
-export const doDecrementRequest = function* doDecrementRequest() {
+export const doDecrementAsync = function* doDecrementAsync() {
   // in this case we'll just wait a second and then approve the request
-  console.log('doDecrementRequest: considering the request');
+  console.log('doDecrementAsync worker saga: considering the request');
   yield delay(2000);
-  console.log('doDecrementRequest: Your request has been approved!');
+  console.log('doDecrementAsync worker saga: Your request has been approved!');
   yield put(counterActions.decrement());
 };
 
@@ -142,8 +144,54 @@ export const doDecrementRequest = function* doDecrementRequest() {
  * last known decrementRequest action will be allowed to run to completion.
  * Don't reward rapid clickers!
  */
-export const watchDecrementRequest = function* watchDecrementRequest() {
-  yield takeLatest(counterActions.DECREMENT_REQUEST, doDecrementRequest);
+export const watchDecrementAsync = function* watchDecrementAsync() {
+  yield takeLatest(counterActions.DECREMENT_ASYNC, doDecrementAsync);
+};
+
+/*
+ * WORKER saga for asynchronous increment requests.
+ * Implements the _asynchronous_ part, but doesn't do anything about _debouncing_
+ * That is handled in the watcher saga (below). But some other watcher could
+ * conceivably re-use just this part of the logic. 
+ */
+export const doIncrementAsync = function* doIncrementsync() {
+  console.log('doIncrementAsync worker saga: considering the request');
+  yield delay(2000);
+  console.log('doIncrementAsync worker saga: Your request has been approved!');
+  yield put(counterActions.increment());
+};
+
+/**
+ * WATCHER saga for asynchronous increment requests.
+ * The _watcher_ implements the debouncing via {takeLatest}
+ */
+export const watchIncrementAsync = function* watchIncrementAsync() {
+  yield takeLatest(counterActions.INCREMENT_ASYNC, doIncrementAsync);
+};
+
+/**
+ * WORKER saga for handling incrementIfOdd via sagas instead of thunks.
+ * With thunks, the logic lives _inside_ the thunk, which means it lives _inside_
+ * the action creator which creates the thunk.
+ * With sagas, the logic lives _inside_ the saga, which means it lives _inside_
+ * the worker saga (not the watcher saga). That keeps action creators simple,
+ * and lets us test the worker saga in isolation.
+ */
+export const doIncrementIfOdd = function* doDecrementIfOdd() {
+  // NB: you could pass a selector function to select() to get a slice of the overall state
+  const currentState = yield select(); // remember: the {yield} is __required__
+  if (currentState.counter % 2 === Math.abs(1)) {
+    console.log('doIncrementIfOdd WORKER saga: counter is odd. Incrementing!');
+    yield put(counterActions.increment()); // *call* the action creator function
+  } else {
+    console.log(
+      'doIncrementIfOdd WORKER saga: counter is not odd. Doing nothing!'
+    );
+  }
+};
+
+export const watchIncrementIfOdd = function* watchIncrementIfOdd() {
+  yield takeEvery(counterActions.INCREMENT_IF_ODD, doIncrementIfOdd);
 };
 
 /**
@@ -159,7 +207,11 @@ const allCounterSagas = function* allCounterSagas() {
     watchIncrement(), // nb: array is full of actual generator instances, not saga functions
     watchDecrement(),
     watchIncrementIfEven(),
-    watchDecrementRequest()
+    watchIncrementIfOdd(),
+    // could add watchDecrementIfEven if you felt obsessive-compulsive
+    // could add watchDecrementIfOdd if you felt obsessive-compulsive
+    watchIncrementAsync(), // deferred and debounced
+    watchDecrementAsync() // deferred and debounced
     // add more sagas here as necessary
   ]);
 
