@@ -26,7 +26,9 @@ import * as counterActions from '../actions/counter';
  * from the thunk system.
  */
 export const doIncrement = function* doIncrement() {
-  yield delay(1); // just to show we can do this without affecting anything
+  yield delay(1, 1); // just to show we can do this without affecting anything
+  // the second argument *optional*; it is what the delay promise resolves to
+  // What could be more appropriate for testing than resolving to the delay itself?
   console.log(`doIncrement WORKER saga logging an increment. Done.`);
   // That's a silly thing to waste code doing (for several reasons)
   // But I do want to show that sagas can listen to ALL actions
@@ -50,7 +52,7 @@ export const watchIncrement = function* watchIncrement() {
 /** Another __worker__ saga */
 export const doDecrement = function* doDecrement() {
   console.log(`doDecrement WORKER saga logging a decrement. Done.`);
-  yield delay(1); // again, a useless but harmless delay
+  yield delay(1, 1); // again, a useless but harmless delay that resolves to itself
 };
 
 /**
