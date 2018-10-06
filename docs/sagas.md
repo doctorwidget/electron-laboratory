@@ -105,31 +105,97 @@ do some kind of workaround like:
 
 That would certainly work, but it's much simpler if you use `redux-saga`,
 because they have a `cancel` Effect wrapper built into the core. This lets you
-include cancelation code paths as part of any saga. Roughly speaking your saga
-code would look something like this:
+include cancelation code paths as part of any saga.
+
+The `race` Effect does exactly what we need here: given 2+ effects, the outer
+yield returns as soon as any of the effects does. The other Effects are
+canceled _automatically_.
 
 ```javascript
 // pseudocode!
 while (stimuli.hasNext()) {
-    // fork the timeout timer function, so it runs in the background
-    const timer = yield fork(timeoutTimerFn)
-    // the {take} wrapper says "take the next one, regardless of type"
-    const action = yield take(['TIMEOUT', 'USER_CLICK']) // something else in the system handles user clicks
-    if (action.type === 'USER_CLICK') {
-        yield cancel(timer);  // cancel that forked timer
-        // And don't worry that the saga middleware will now be 'stuck waiting'... it will not be!
-        // saga middleware is __eager__... it only stops if the Effect wrapper is asynchronous
-        // {take} is asynchronous, so the saga will pause at that point
-        // but neither {fork} nor {cancel} is asynchronous,
-        // so the saga will proceed right away after they are evaluated
-    }
-    // which means both 'TIMEOUT' and 'USER_CLICK' converge here:
-    yield call(showNext);  // both timeouts and user clicks proceed to the next stimulus
-  }
+    const { response, timeout } = yield race({
+      response: take('USER_CLICKED'), // an action constant
+      timeout: delay(6000, true) // arg#2 is optional, will be the promise result
+    })
+    // proceed to deal with timeout (if it happened)
+    // record a timeout response, then advance stimuli by one, move on
+
+    // proceed to deal with response (otherwise)
+    // record a user response, then advance stimuli by one, move on
+
+    yield put({type: 'INTERIM'}); // make the UI re-render with an intermediate screen
+    // this happens synchronously / instantaneously, because it's not a promise
+
+    yield delay(2000); // wait, doing nothing
+    // and as soon as that's done, move to the next trial
+}
+
+yield put({type: 'TRIAL_COMPLETE'});
+// REDUCER acts on this
+// ... stimulusDeck changes to be {complete}
+// ... stimulusDeck moves to {completedTrials} in-memory array
+// ... top-level {currentTrial} gets set to null
+// ... top-level {state} gets set to {Epilogue} (vs Records)
+// ... app re-renders based on .state: epilogue (a navigation to an epilogue screen)
 ```
 
-So the See the official docs for more examples of gracefully handling cancelation
-with sagas.
+The form above takes and returns an _object_. The race will resolve to a single
+object hash, e.g. `{response: USER_CLICKED}` or `{timeout: true}`. Since
+we're destructuring that response, the two `const` values will end up with one
+having a value and the other simply being `undefined`. Also note that if the
+response wins the race, the value will be the actual Action object corresponding
+to the string constant type -- it won't just be the string constant itself!
+
+You also have the option to pass in an array and deconstruct the returned value
+via positional destructuring.
+
+Finally, remember that our testing logic tends to get more and more complicated
+because Ian inevitably adds more and more conditions to the process -- the clinician
+should be able to:
+
+- pause the trial
+- fast forward one stimulus (like a manual timeout)
+- fast forward to the next series (skipping the rest of the series)
+- abort the whole trial (and go to the end screen)
+
+By the time we've handled all of those cases in imperative code, things are
+inevitably tangled up and hard to reason about. But the `race` effect just
+keeps scaling up horizontally, without requiring us to nest logic deeper and
+deeper.
+
+```javascript
+// pseudocode!
+while (stimuli.hasNext()) {
+    const { response, timeout, pause, nextStimulus, nextSeries, abort } = yield race({
+      response: take('USER_CLICKED'), // an action constant
+      timeout: delay(6000, true) // arg#2 is optional, will be the promise result
+      pause: take('PAUSE_REQUESTED'), // someone clicked a pause button or keystroke or ??
+      nextStimulus: take('NEXT_STIMULUS'), // someone requested the next stim right away
+      nextSeries: take('NEXT_SERIES'), // someone requested the whole next series
+      abort: take('ABORT_REQUEST')
+    });
+    // proceed to deal with timeout (if it happened)
+    // proceed to deal with response (otherwise)
+
+    // deal with pause (start new saga? or subsaga... remember we can {yield from})
+    // so define a separate paused saga that waits for either 'resume' or 'abort'
+    // and nothing else. Then yield from it while staying inside this {while}
+
+    // deal with nextStimulus: update stimuli deck with one SKIP, move on
+    // deal with nextSeries: update stimuli deck with multiple SKIP, move on
+    // deal with abort: update stimuli deck with all remaining ABORT, move on
+
+    // remainder of trial logic unchanged from above
+  }
+// remainder of trial logic unchanged
+```
+
+The beautiful thing here is how clearly we're showing the (fairly complex!)
+high-level logic of going through a fully-fleshed-out trial, but without losing
+_any_ of the signal to language noise. Instead of an impenetrable mesh of
+boolean checks, we have a _declarative_ record of exactly how we intend a trial
+to flow.
 
 ## Actual Changes
 
