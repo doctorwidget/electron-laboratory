@@ -3,6 +3,7 @@
   top: 30%;
   left: 10px;
   text-align: center;
+  width: 100%;
 }
 
 .container h2 {
@@ -11,4 +12,9 @@
 
 .container a {
   font-size: 1.4rem;
+}
+
+.navList {
+  display: flex;
+  justify-content: space-evenly;
 }

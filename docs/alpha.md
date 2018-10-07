@@ -150,11 +150,22 @@ I got nagged to upgrade Yarn after only a couple of weeks
 - _done_ test for all worker sagas... no need for watcher saga tests, right?
 - _done_ ifOdd and ifEven sagas get jest-tested with differing inputs!
 - _done_ interim commit
+- _done_ create a test page of your own that you can navigate to: this is the real laboratory!
+- _done_ put some font-awesome icon on this page somehow, because I want to confirm that's happening!
+  see the existing counter page, which uses one (1) fa icon: "fa fa-icon-back-arrow"
+- _done_ interim commit
+- add statefulness to new lab:
+  - new reducers file
+  - root reducer uses it
+  - labAlpha page displays current status
+  - buttons toggle enabled / disabled based on current status
+  - unit tests of reducer
+  - e2e tests of UI proper (snapshots, etc)
+- interim commit
+- make new sagaLog() function that can be silenced, so unit tests can be terse but runtime verbose
+- interim commit
 - figure out how to jest the debounce effects of decrementRequest and incrementRequest
 - interim commit
-- create a test page of your own that you can navigate to: this is the real laboratory!
-- put some font-awesome icon on this page somehow, because I want to confirm that's happening!
-  see the existing counter page, which uses one (1) fa icon: "fa fa-icon-back-arrow"
 - do a _cancelable_ saga action, and a unit test for it
   something that starts a timer, which counts down from 10, but which can be canceled
   So it ends either when the countdown ends, or the user clicks abort
