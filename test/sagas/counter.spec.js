@@ -14,6 +14,7 @@
  */
 import { delay } from 'redux-saga';
 import { put, select } from 'redux-saga/effects';
+import { cloneableGenerator } from 'redux-saga/utils';
 
 import * as sagas from '../../app/sagas/counter'; // our sagas-to-be-tested
 import * as actions from '../../app/actions/counter'; // needed to generate test values
@@ -106,5 +107,39 @@ describe('counter sagas', () => {
     // There is no need for mock functions, utility functions, or extra libraries
     // Generators are _made to be mocked_, because of the ability to pass values *in*
     // This is why people say {redux-saga} is highly testable right out of the box.
+  });
+
+  // cloneableGenerator
+  // redux-saga offers a utility called cloneableGenerator to cut down on boilerplate even further
+  // it lets you do the _setup_ for a series of tests just once, after which you can spin off
+  // any number of clones from the cloneableGenerator. Each new clone will have the same state
+  // that the original was in at the point of cloning. This makes testing branching behavior
+  // in the later stages much simpler.
+  describe('the doIncrementIfOdd worker saga', () => {
+    // create the cloneable generator. NB: we pass in the saga _function_, not a saga _instance
+    const originalSaga = cloneableGenerator(sagas.doIncrementIfOdd)();
+
+    // move the original saga one step forward in its cycle, and test that result
+    expect(originalSaga.next().value).toEqual(select()); // all tests would repeat this test otherwise
+
+    it('emits an increment action if the app counter state is odd', () => {
+      const saga = originalSaga.clone(); // cloned saga has same internal state as originalSaga
+
+      const actual = saga.next({ counter: 11 }).value; // 11 is odd, so we expect an increment
+      const expected = put(actions.increment());
+      expect(actual).toEqual(expected); // so here we test for it
+
+      // confirm that this saga is done as of next() call #3
+      expect(saga.next()).toEqual({ done: true, value: undefined });
+    });
+
+    it('is {.done} after the first step if the app counter state is even', () => {
+      const saga = originalSaga.clone(); // a different clone, but with the same internal state
+      const actual = saga.next({ counter: -2 }); // -2 is even, so we expect the saga to end
+      const expected = { done: true, value: undefined };
+      expect(actual).toEqual(expected);
+    });
+    // cloneableGenerator only shaves off one step for this example, which is no big deal
+    // but it should be clear that it could save many lines *per test* in more complex sagas
   });
 });
